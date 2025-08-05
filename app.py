@@ -51,5 +51,6 @@ def index():
 def download_file(filename):
     return send_from_directory(app.config["OUTPUT_FOLDER"], filename, as_attachment=True)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Gunicorn sẽ tự động tìm app ở đây, không cần gọi app.run()
+# if __name__ == "__main__":
+#     app.run(debug=True)
