@@ -5,93 +5,89 @@
   <title>Chuyển PDF sang Word</title>
   <style>
     body {
-      background-color: #f0f4f8;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      background: #f4f4f4;
       margin: 0;
-    }
-
-    .container {
-      background-color: #fff;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 500px;
+      padding: 0;
       text-align: center;
+      font-family: Arial, sans-serif;
     }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #0077cc;
+    .container {
+      max-width: 700px;
+      margin: 100px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      z-index: 1;
+      position: relative;
     }
-
-    input[type="file"] {
-      margin: 20px 0;
+    #ads-top, #ads-bottom {
+      width: 100%;
+      height: 90px;
+      background: #ddd;
+      line-height: 90px;
+      font-weight: bold;
     }
-
-    button {
-      background-color: #0077cc;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.2s;
+    #ads-left, #ads-right {
+      position: fixed;
+      width: 120px;
+      height: 600px;
+      background: #ddd;
+      top: 100px;
+      text-align: center;
+      line-height: 600px;
+      font-weight: bold;
     }
-
-    button:hover {
-      background-color: #005fa3;
-    }
-
-    .download-link {
+    #ads-left { left: 0; }
+    #ads-right { right: 0; }
+    #download-link {
       margin-top: 20px;
-      display: block;
-      font-size: 16px;
-      color: #0077cc;
+      display: inline-block;
+      font-size: 18px;
+      color: blue;
       text-decoration: underline;
       cursor: pointer;
-    }
-
-    .banner {
-      margin-bottom: 20px;
-      background-color: #e0e0e0;
-      padding: 10px;
-      border-radius: 8px;
-      color: #555;
-      font-size: 14px;
     }
   </style>
 </head>
 <body>
+  <div id="ads-top">[Ad Banner Top]</div>
+  <div id="ads-left">[Ad Left]</div>
+  <div id="ads-right">[Ad Right]</div>
+
   <div class="container">
-    <div class="banner">🌟 Quảng cáo: Tận dụng cơ hội kiếm tiền online ngay hôm nay!</div>
-    <h1>Chuyển đổi PDF sang Word</h1>
+    <h1>Chuyển PDF sang Word</h1>
     <form method="POST" enctype="multipart/form-data">
-      <input type="file" name="pdf_file" accept=".pdf" required><br>
+      <input type="file" name="pdf_file" accept=".pdf" required><br><br>
       <button type="submit">Chuyển đổi</button>
     </form>
 
-    {% if word_download_link %}
-      <a href="{{ word_download_link }}" class="download-link" id="download-link">Tải về tệp Word</a>
-      <script>
-        let firstClick = true;
-        const link = document.getElementById("download-link");
-        link.addEventListener("click", function(event) {
-          if (firstClick) {
-            event.preventDefault();
-            window.open("https://example-ad-link.com", "_blank");
-            firstClick = false;
-          }
-        });
-      </script>
+    {% if download_link %}
+      <div id="download-link">Tải về Word</div>
     {% endif %}
   </div>
+
+  <div id="ads-bottom">[Ad Banner Bottom]</div>
+
+  {% if download_link %}
+  <script>
+    const link = document.getElementById("download-link");
+    let clicked = false;
+    const adUrl = "https://example.com/ad1"; // THAY bằng URL quảng cáo thật
+
+    link.onclick = function () {
+      if (!clicked) {
+        window.open(adUrl, "_blank");
+        clicked = true;
+      } else {
+        window.open(adUrl, "_blank");
+        window.location.href = "{{ url_for('index') }}";
+        setTimeout(() => {
+          window.location.href = "{{ download_link }}";
+        }, 500);
+      }
+    };
+  </script>
+  {% endif %}
 </body>
 </html>
