@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for, flash
 import os
 import pytesseract
 from pdf2image import convert_from_path
@@ -7,6 +7,8 @@ from docx import Document
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+app.secret_key = "your_secret_key"  # Bắt buộc cho flash thông báo
+
 UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "output"
 
@@ -17,12 +19,17 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["OUTPUT_FOLDER"] = OUTPUT_FOLDER
 
 # OCR + Save to Word
+
 def pdf_to_text(pdf_path):
-    images = convert_from_path(pdf_path)
-    text = ""
-    for img in images:
-        text += pytesseract.image_to_string(img, lang="vie") + "\n"
-    return text
+    try:
+        images = convert_from_path(pdf_path)
+        text = ""
+        for img in images:
+            text += pytesseract.image_to_string(img, lang="vie") + "\n"
+        return text
+    except Exception as e:
+        print(f"[ERROR] convert_from_path failed: {e}")
+        return None
 
 def save_to_word(text, output_path):
     doc = Document()
@@ -42,15 +49,21 @@ def index():
             output_path = os.path.join(app.config["OUTPUT_FOLDER"], output_filename)
 
             text = pdf_to_text(input_path)
+            if text is None:
+                flash("Chuyển đổi PDF thất bại. Kiểm tra định dạng file hoặc cấu hình server.")
+                return redirect(url_for("index"))
+
             save_to_word(text, output_path)
 
             return render_template("index.html", download_link=url_for("download_file", filename=output_filename))
+        else:
+            flash("Vui lòng tải lên file PDF hợp lệ.")
+            return redirect(url_for("index"))
+
     return render_template("index.html")
 
 @app.route("/download/<filename>")
 def download_file(filename):
     return send_from_directory(app.config["OUTPUT_FOLDER"], filename, as_attachment=True)
 
-# Gunicorn sẽ tự động tìm app ở đây, không cần gọi app.run()
-# if __name__ == "__main__":
-#     app.run(debug=True)
+# Gunicorn sẽ tự động tìm app ở đây
