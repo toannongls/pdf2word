@@ -55,7 +55,7 @@ def index():
 
             save_to_word(text, output_path)
 
-            return render_template("index.html", download_link=url_for("download_file", filename=output_filename))
+            return render_template("index.html", download_link=url_for("download_file", filename=output_filename), filename=output_filename)
         else:
             flash("Vui lòng tải lên file PDF hợp lệ.")
             return redirect(url_for("index"))
