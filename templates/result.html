@@ -20,7 +20,7 @@
   </div>
 
   <h2>Chuyển đổi thành công!</h2>
-  <p id="message">Vui lòng click "Tải về" để mở quảng cáo. Sau đó click lại để tải file.</p>
+  <p id="message">Vui lòng click "Tải về" 2 lần để tải file</p>
   <button id="download-btn">Tải về</button>
   <br><br>
   <a href="/download-count" target="_blank">Xem lượt tải về</a>
@@ -33,7 +33,7 @@
     btn.addEventListener("click", function () {
       if (!clicked) {
         window.open("https://go.adsterra.com/demo-link", "_blank");
-        message.innerText = "Quảng cáo đã được mở. Click lại để tải file.";
+        message.innerText = "Hãy chọn nơi lưu file.";
         clicked = true;
       } else {
         window.location.href = "/download/sample.docx";

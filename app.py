@@ -1,37 +1,37 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for
+
+from flask import Flask, render_template, request, send_file
+from werkzeug.utils import secure_filename
 import os
+from pdf2docx import Converter
 
 app = Flask(__name__)
-DOWNLOAD_PATH = os.path.join("static", "sample.docx")
-COUNTER_FILE = "download_count.txt"
+UPLOAD_FOLDER = 'uploads'
+OUTPUT_FOLDER = 'output'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-@app.route("/", methods=["GET", "POST"])
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    if request.method == "POST":
-        return redirect(url_for("result"))
-    return render_template("index.html")
+    word_download_link = None
+    if request.method == 'POST':
+        file = request.files['pdf_file']
+        if file and file.filename.endswith('.pdf'):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(filepath)
 
-@app.route("/result")
-def result():
-    return render_template("result.html")
+            filename_wo_ext = os.path.splitext(filename)[0]
+            output_path = f"{OUTPUT_FOLDER}/{filename_wo_ext}.docx"
 
-@app.route("/download/<filename>")
-def download(filename):
-    # Đếm lượt tải
-    if os.path.exists(COUNTER_FILE):
-        with open(COUNTER_FILE, "r+") as f:
-            count = int(f.read().strip())
-            f.seek(0)
-            f.write(str(count + 1))
-            f.truncate()
-    return send_file(os.path.join("static", filename), as_attachment=True)
+            cv = Converter(filepath)
+            cv.convert(output_path, start=0, end=None)
+            cv.close()
+            word_download_link = output_path
+    return render_template('index.html', word_download_link=word_download_link)
 
-@app.route("/download-count")
-def download_count():
-    if os.path.exists(COUNTER_FILE):
-        with open(COUNTER_FILE, "r") as f:
-            return f"Đã có {f.read().strip()} lượt tải về."
-    return "0"
+@app.route('/output/<filename>')
+def download_file(filename):
+    return send_file(os.path.join(OUTPUT_FOLDER, filename), as_attachment=True)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
