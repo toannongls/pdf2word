@@ -1,35 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <title>Chuyển PDF sang Word</title>
   <style>
     body {
-      text-align: center;
-      font-family: sans-serif;
-      padding: 50px;
+      background-color: #f0f4f8;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-    .banner {
+
+    .container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #0077cc;
+    }
+
+    input[type="file"] {
       margin: 20px 0;
+    }
+
+    button {
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    .download-link {
+      margin-top: 20px;
+      display: block;
+      font-size: 16px;
+      color: #0077cc;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .banner {
+      margin-bottom: 20px;
+      background-color: #e0e0e0;
+      padding: 10px;
+      border-radius: 8px;
+      color: #555;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <div class="banner">
-    <!-- Banner Adsterra demo -->
-    <script type='text/javascript' src='//pl999999.pu-srv.com/ads.js' async></script>
-  </div>
+  <div class="container">
+    <div class="banner">🌟 Quảng cáo: Tận dụng cơ hội kiếm tiền online ngay hôm nay!</div>
+    <h1>Chuyển đổi PDF sang Word</h1>
+    <form method="POST" enctype="multipart/form-data">
+      <input type="file" name="pdf_file" accept=".pdf" required><br>
+      <button type="submit">Chuyển đổi</button>
+    </form>
 
-  <h1>Chuyển PDF sang Word</h1>
-  <form method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" accept=".pdf" required>
-    <br><br>
-    <button type="submit">Chuyển đổi</button>
-  </form>
-
-  <div class="banner">
-    <!-- Banner Adsterra demo -->
-    <script type='text/javascript' src='//pl999999.pu-srv.com/ads.js' async></script>
+    {% if word_download_link %}
+      <a href="{{ word_download_link }}" class="download-link" id="download-link">Tải về tệp Word</a>
+      <script>
+        let firstClick = true;
+        const link = document.getElementById("download-link");
+        link.addEventListener("click", function(event) {
+          if (firstClick) {
+            event.preventDefault();
+            window.open("https://example-ad-link.com", "_blank");
+            firstClick = false;
+          }
+        });
+      </script>
+    {% endif %}
   </div>
 </body>
 </html>
