@@ -1,122 +1,31 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>Chuyển PDF sang Word</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    form, .result {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #ccc;
-      text-align: center;
-      margin: 10px;
-    }
-
-    .ads {
-      position: fixed;
-      width: 100%;
-      height: 100px;
-      left: 0;
-      z-index: -1;
-    }
-
-    .ads-top { top: 0; background: #ddd; }
-    .ads-bottom { bottom: 0; background: #ddd; }
-    .ads-left {
-      top: 100px;
-      bottom: 100px;
-      left: 0;
-      width: 120px;
-      background: #eee;
-    }
-    .ads-right {
-      top: 100px;
-      bottom: 100px;
-      right: 0;
-      width: 120px;
-      background: #eee;
-    }
-
-    .download-btn {
-      margin-top: 20px;
-      font-size: 18px;
-      padding: 10px 20px;
-      background: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .download-btn:hover {
-      background: #0056b3;
-    }
-
-    .hidden { display: none; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Chuyển PDF sang Word</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <!-- Banner Ads -->
-  <div class="ads ads-top">[Banner trên]</div>
-  <div class="ads ads-bottom">[Banner dưới]</div>
-  <div class="ads ads-left">[Banner trái]</div>
-  <div class="ads ads-right">[Banner phải]</div>
+    <div class="container">
+        <h1>Chuyển PDF sang Word (Hỗ trợ tiếng Việt)</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="pdf_file" accept=".pdf" required>
+            <button type="submit">Chuyển đổi</button>
+        </form>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
 
-  <form method="post" enctype="multipart/form-data">
-    <h2>Chuyển đổi PDF sang Word (tiếng Việt)</h2>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-          {% for message in messages %}
-            <li style="color:red;">{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-
-    <input type="file" name="pdf_file" accept=".pdf" required />
-    <button type="submit">Chuyển đổi</button>
-  </form>
-
-  {% if download_link %}
-  <div class="result">
-    <h3>✅ Chuyển đổi thành công!</h3>
-    <button id="downloadBtn" class="download-btn">Tải file Word</button>
-  </div>
-
-  <script>
-    let clickCount = 0;
-    const btn = document.getElementById("downloadBtn");
-
-    btn.addEventListener("click", function () {
-      clickCount++;
-
-      // Mở quảng cáo ở tab mới
-      window.open("https://www.adsterra.com/", "_blank");
-
-      if (clickCount === 2) {
-        // Tải file
-        window.location.href = "{{ download_link }}";
-
-        // Quay về trang chủ sau 2 giây
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 2000);
-      }
-    });
-  </script>
-  {% endif %}
+        {% if show_download %}
+            <a href="{{ url_for('download_ad') }}" id="downloadBtn">Tải về</a>
+        {% endif %}
+    </div>
 </body>
 </html>
