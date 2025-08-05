@@ -1,8 +1,7 @@
 services:
   - type: web
-    name: pdf-to-word-converter
-    env: python
-    buildCommand: ./build.sh && pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    name: pdf2word-ads
+    env: docker
     plan: free
+    dockerfilePath: Dockerfile
     autoDeploy: true
