@@ -25,7 +25,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 
 # Hàm đơn giản để chuyển đổi PDF sang Word
-# Lưu ý: Hàm này chỉ trích xuất văn bản và có thể không giữ nguyên định dạng phức tạp
+# LƯU Ý QUAN TRỌNG: Hàm này chủ yếu trích xuất VĂN BẢN thô từ PDF.
+# Nó KHÔNG thể giữ nguyên định dạng phức tạp như bảng biểu, hình ảnh,
+# bố cục nhiều cột, font chữ, màu sắc, hoặc các yếu tố đồ họa.
+# Để giữ định dạng tốt hơn, cần sử dụng các thư viện hoặc API thương mại chuyên dụng.
 def pdf_to_word_simple(pdf_path, docx_path):
     """
     Trích xuất văn bản từ file PDF và lưu vào định dạng Word (.docx).
@@ -39,6 +42,7 @@ def pdf_to_word_simple(pdf_path, docx_path):
         document = Document()
         
         # Chia văn bản thành các đoạn dựa trên dòng mới kép để giữ cấu trúc tốt hơn
+        # Tuy nhiên, điều này không đảm bảo giữ nguyên định dạng phức tạp của PDF.
         paragraphs = text.split('\n\n')
         for para_text in paragraphs:
             cleaned_text = para_text.strip()
