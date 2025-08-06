@@ -1,1 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chuyển PDF sang Word - Quảng cáo</title>
+  <style>
+    body {
+      background: #f5f5f5;
+      font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header, footer {
+      background: #222;
+      color: #fff;
+      padding: 1em;
+    }
+    .content {
+      max-width: 600px;
+      margin: 2em auto;
+      background: #fff;
+      padding: 2em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .banner {
+      margin: 1em auto;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Chuyển PDF sang Word</h1>
+    <div class="banner">[Quảng cáo đầu trang]</div>
+  </header>
+
+  <div class="banner">[Quảng cáo bên trái]</div>
+
+  <div class="content">
+    <form method="POST" enctype="multipart/form-data">
+      <input type="file" name="pdf_file" required><br><br>
+      <button type="submit">Chuyển đổi</button>
+    </form>
+
+    {% if show_download %}
+      <br><a href="{{ url_for('download_ad') }}" id="downloadBtn">Tải về</a>
+    {% endif %}
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for msg in messages %}
+            <li>{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <div class="banner">[Quảng cáo bên phải]</div>
+
+  <footer>
+    <div class="banner">[Quảng cáo cuối trang]</div>
+    <p>&copy; 2025</p>
+  </footer>
+</body>
+</html>
 # Content omitted for brevity
