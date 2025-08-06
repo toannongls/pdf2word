@@ -2,9 +2,8 @@ import os
 import logging
 from flask import Flask, request, render_template, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
-from pdfminer.high_level import extract_text
-from docx import Document
-from docx.shared import Inches
+# Thay thế pdfminer.high_level và docx bằng pdf2docx
+from pdf2docx import parse
 import re
 
 # Cấu hình logging cơ bản
@@ -24,37 +23,23 @@ app.config['CONVERTED_FOLDER'] = CONVERTED_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 
-# Hàm đơn giản để chuyển đổi PDF sang Word
-# LƯU Ý QUAN TRỌNG: Hàm này chủ yếu trích xuất VĂN BẢN thô từ PDF.
-# Nó KHÔNG thể giữ nguyên định dạng phức tạp như bảng biểu, hình ảnh,
-# bố cục nhiều cột, font chữ, màu sắc, hoặc các yếu tố đồ họa.
-# Để giữ định dạng tốt hơn, cần sử dụng các thư viện hoặc API thương mại chuyên dụng.
-def pdf_to_word_simple(pdf_path, docx_path):
+# Hàm để chuyển đổi PDF sang Word sử dụng pdf2docx
+# LƯU Ý: Thư viện pdf2docx có khả năng giữ định dạng tốt hơn
+# pdfminer.six và python-docx, đặc biệt với bảng và hình ảnh.
+# Tuy nhiên, nó vẫn có giới hạn và không đảm bảo giữ nguyên 100% định dạng
+# cho tất cả các loại PDF phức tạp (ví dụ: bố cục phức tạp, font nhúng đặc biệt).
+def pdf_to_word_convert(pdf_path, docx_path):
     """
-    Trích xuất văn bản từ file PDF và lưu vào định dạng Word (.docx).
-    Đây là một phương pháp đơn giản, có thể không giữ nguyên định dạng phức tạp.
+    Chuyển đổi file PDF sang định dạng Word (.docx) sử dụng thư viện pdf2docx.
+    Cố gắng giữ nguyên định dạng tốt hơn so với phương pháp trích xuất văn bản thô.
     """
     try:
-        logging.info(f"Bắt đầu trích xuất văn bản từ PDF: {pdf_path}")
-        text = extract_text(pdf_path)
-        logging.info("Trích xuất văn bản thành công.")
-
-        document = Document()
-        
-        # Chia văn bản thành các đoạn dựa trên dòng mới kép để giữ cấu trúc tốt hơn
-        # Tuy nhiên, điều này không đảm bảo giữ nguyên định dạng phức tạp của PDF.
-        paragraphs = text.split('\n\n')
-        for para_text in paragraphs:
-            cleaned_text = para_text.strip()
-            if cleaned_text:
-                document.add_paragraph(cleaned_text)
-        
-        logging.info(f"Lưu tài liệu Word vào: {docx_path}")
-        document.save(docx_path)
-        logging.info("Lưu tài liệu Word thành công.")
+        logging.info(f"Bắt đầu chuyển đổi PDF sang Word bằng pdf2docx: {pdf_path}")
+        parse(pdf_path, docx_path)
+        logging.info("Chuyển đổi thành công bằng pdf2docx.")
         return True
     except Exception as e:
-        logging.error(f"Lỗi khi chuyển đổi PDF sang Word cho {pdf_path}: {e}", exc_info=True)
+        logging.error(f"Lỗi khi chuyển đổi PDF sang Word cho {pdf_path} bằng pdf2docx: {e}", exc_info=True)
         return False
 
 @app.route('/')
@@ -100,7 +85,8 @@ def convert_pdf():
             logging.info(f"Lưu file PDF tải lên: {pdf_path}")
             file.save(pdf_path) # Lưu file PDF tải lên
             
-            if pdf_to_word_simple(pdf_path, docx_path):
+            # Gọi hàm chuyển đổi mới sử dụng pdf2docx
+            if pdf_to_word_convert(pdf_path, docx_path):
                 logging.info(f"Chuyển đổi thành công, file Word: {docx_filename}")
                 return jsonify({
                     'message': 'Chuyển đổi thành công!',
@@ -120,6 +106,9 @@ def convert_pdf():
                     logging.info(f"Đã xóa file PDF tạm thời: {pdf_path}")
                 except Exception as e:
                     logging.error(f"Lỗi khi xóa file PDF tạm thời {pdf_path}: {e}", exc_info=True)
+            # Có thể xóa file DOCX đã chuyển đổi sau một khoảng thời gian nhất định
+            # hoặc khi có cơ chế dọn dẹp khác để tránh đầy bộ nhớ trên server
+            # For now, we keep it for download.
 
 @app.route('/download/<filename>')
 def download_file(filename):
@@ -142,4 +131,3 @@ if __name__ == '__main__':
     # Đoạn này chỉ chạy khi bạn chạy app.py trực tiếp để phát triển.
     logging.info("Ứng dụng Flask đang chạy ở chế độ phát triển.")
     app.run(debug=True, host='0.0.0.0', port=os.environ.get('PORT', 5000))
-
