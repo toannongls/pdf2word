@@ -1,15 +1,11 @@
-FROM python:3.10-slim
-
-RUN apt-get update && apt-get install -y \
-    poppler-utils \
-    tesseract-ocr \
-    tesseract-ocr-vie \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-COPY . .
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:10000"]
+services:
+  - type: web
+    name: pdf-to-word-converter
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:10000
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10
+    autoDeploy: true

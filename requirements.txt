@@ -1,7 +1,4 @@
-
+pdf2docx
 Flask
-Flask-Limiter
-pytesseract
-pdf2image
-python-docx
 gunicorn
+
