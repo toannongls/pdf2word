@@ -1,13 +1,15 @@
-# app.py
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for, flash
+
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for, flash, session
 import os
 import pytesseract
 from pdf2image import convert_from_path
 from docx import Document
 from werkzeug.utils import secure_filename
 
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+
 app = Flask(__name__)
-app.secret_key = "your_secret_key"  # Bắt buộc cho flash thông báo
+app.secret_key = "your_secret_key"
 
 UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "output"
@@ -17,8 +19,6 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["OUTPUT_FOLDER"] = OUTPUT_FOLDER
-
-# OCR + Save to Word
 
 def pdf_to_text(pdf_path):
     try:
@@ -55,15 +55,25 @@ def index():
 
             save_to_word(text, output_path)
 
-            return render_template("index.html", download_link=url_for("download_file", filename=output_filename), filename=output_filename)
+            session["converted_file"] = output_filename
+            session["download_clicked"] = False
+
+            return render_template("index.html", show_download=True, filename=output_filename)
         else:
             flash("Vui lòng tải lên file PDF hợp lệ.")
             return redirect(url_for("index"))
 
     return render_template("index.html")
 
-@app.route("/download/<filename>")
-def download_file(filename):
-    return send_from_directory(app.config["OUTPUT_FOLDER"], filename, as_attachment=True)
+@app.route("/download-ad")
+def download_ad():
+    if "converted_file" not in session:
+        return redirect(url_for("index"))
 
-# Gunicorn sẽ tự động tìm app ở đây
+    if not session.get("download_clicked"):
+        session["download_clicked"] = True
+        return render_template("ad_redirect.html", filename=session["converted_file"])
+    else:
+        filename = session.pop("converted_file", None)
+        session.pop("download_clicked", None)
+        return send_from_directory(app.config["OUTPUT_FOLDER"], filename, as_attachment=True)

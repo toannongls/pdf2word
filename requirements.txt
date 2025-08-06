@@ -1,13 +1,6 @@
-Flask==2.3.3
-gunicorn
-pdf2docx
-PyMuPDF
-pytesseract
-Pillow
-opencv-python
 Flask
-pdf2image
 pytesseract
+pdf2image
 python-docx
-Pillow
-PyMuPDF
+Werkzeug
+gunicorn

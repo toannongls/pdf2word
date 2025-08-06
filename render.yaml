@@ -1,6 +1,7 @@
+
 services:
   - type: web
-    name: pdf2word-ads
+    name: pdf2word-docker
     env: docker
     plan: free
     dockerfilePath: Dockerfile
