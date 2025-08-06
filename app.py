@@ -23,7 +23,12 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["OUTPUT_FOLDER"] = OUTPUT_FOLDER
 
-limiter = Limiter(app, key_func=get_remote_address, default_limits=["5 per minute"])
+# Đúng cú pháp cho Flask-Limiter phiên bản mới
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["5 per minute"]
+)
+limiter.init_app(app)
 
 # DB setup
 with sqlite3.connect(DB_PATH) as db:
