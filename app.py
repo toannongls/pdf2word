@@ -32,20 +32,20 @@ def get_db():
     db = getattr(g, "_database", None)
     if db is None:
         db = g._database = sqlite3.connect(DB_PATH, check_same_thread=False)
-        db.execute("
+        db.execute("""
         CREATE TABLE IF NOT EXISTS downloads (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            filename TEXT,
-            ip TEXT,
-            timestamp TEXT
-        )")
-        db.execute("
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        filename TEXT,
+        ip TEXT,
+        timestamp TEXT
+        )""")
+        db.execute("""
         CREATE TABLE IF NOT EXISTS conversions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             filename TEXT,
             ip TEXT,
             timestamp TEXT
-        )")
+        )""")
         db.commit()
     return db
 
