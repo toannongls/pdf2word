@@ -2,7 +2,6 @@ import os
 import logging
 from flask import Flask, request, render_template, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
-# Thay thế pdfminer.high_level và docx bằng pdf2docx
 from pdf2docx import parse
 import re
 
@@ -69,6 +68,11 @@ def convert_pdf():
         logging.warning("Tên tệp trống.")
         return jsonify({'error': 'Không có tệp nào được chọn'}), 400
 
+    # Server-side file type validation
+    if not file.filename.lower().endswith('.pdf'):
+        logging.warning(f"Tệp không phải PDF: {file.filename}")
+        return jsonify({'error': 'Tệp đã chọn không phải là PDF. Vui lòng chọn tệp PDF.'}), 400
+
     if file:
         original_filename = secure_filename(file.filename)
         base_filename = os.path.splitext(original_filename)[0]
@@ -106,9 +110,12 @@ def convert_pdf():
                     logging.info(f"Đã xóa file PDF tạm thời: {pdf_path}")
                 except Exception as e:
                     logging.error(f"Lỗi khi xóa file PDF tạm thời {pdf_path}: {e}", exc_info=True)
-            # Có thể xóa file DOCX đã chuyển đổi sau một khoảng thời gian nhất định
-            # hoặc khi có cơ chế dọn dẹp khác để tránh đầy bộ nhớ trên server
-            # For now, we keep it for download.
+            # Lưu ý về việc dọn dẹp file DOCX đã chuyển đổi:
+            # Trên các nền tảng như Render, hệ thống file là ephemeral (tạm thời).
+            # Các file trong thư mục 'converted' sẽ bị xóa khi container khởi động lại.
+            # Đối với một ứng dụng đơn giản, việc không tự động xóa file DOCX ngay lập tức
+            # sau khi chuyển đổi là chấp nhận được để người dùng có thời gian tải xuống.
+            # Nếu cần dọn dẹp chủ động hơn, sẽ cần một cơ chế background task phức tạp hơn.
 
 @app.route('/download/<filename>')
 def download_file(filename):
@@ -118,7 +125,20 @@ def download_file(filename):
     logging.info(f"Yêu cầu tải file: {filename}")
     try:
         # Sử dụng send_from_directory để phục vụ file một cách an toàn
-        return send_from_directory(app.config['CONVERTED_FOLDER'], filename, as_attachment=True)
+        response = send_from_directory(app.config['CONVERTED_FOLDER'], filename, as_attachment=True)
+        # Tùy chọn: Xóa file sau khi đã gửi thành công
+        # Đây là một cách để dọn dẹp, nhưng có thể gây lỗi nếu người dùng tải lại trang
+        # hoặc có nhiều yêu cầu tải cùng lúc. Cần cân nhắc kỹ.
+        # @response.call_on_close
+        # def cleanup_file():
+        #     file_to_delete = os.path.join(app.config['CONVERTED_FOLDER'], filename)
+        #     if os.path.exists(file_to_delete):
+        #         try:
+        #             os.remove(file_to_delete)
+        #             logging.info(f"Đã xóa file DOCX sau khi tải xuống: {file_to_delete}")
+        #         except Exception as e:
+        #             logging.error(f"Lỗi khi xóa file DOCX sau tải xuống {file_to_delete}: {e}", exc_info=True)
+        return response
     except FileNotFoundError:
         logging.warning(f"Không tìm thấy tệp để tải xuống: {filename}")
         return jsonify({'error': 'Không tìm thấy tệp hoặc tệp đã bị xóa.'}), 404

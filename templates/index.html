@@ -6,6 +6,8 @@
     <title>Chuyển đổi PDF sang Word - Miễn phí và Nhanh chóng</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -71,18 +73,21 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .file-input-label {
-            display: inline-block;
+            display: inline-flex; /* Changed to flex for icon alignment */
+            align-items: center;
+            gap: 8px; /* Space between icon and text */
             background-color: #4CAF50;
             color: white;
             padding: 12px 25px;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
             font-weight: 600;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .file-input-label:hover {
             background-color: #45a049;
+            transform: translateY(-2px); /* Subtle hover effect */
         }
         .file-input {
             display: none;
@@ -93,13 +98,14 @@
             padding: 12px 25px;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
             font-weight: 600;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             border: none;
         }
         .upload-button:hover {
             background-color: #0056b3;
+            transform: translateY(-2px);
         }
         .download-button {
             background-color: #28a745;
@@ -107,7 +113,7 @@
             padding: 12px 25px;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
             font-weight: 600;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             border: none;
@@ -115,6 +121,7 @@
         }
         .download-button:hover {
             background-color: #218838;
+            transform: translateY(-2px);
         }
         .message {
             margin-top: 20px;
@@ -147,6 +154,33 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Drag and Drop Area Styling */
+        .drop-zone {
+            border: 2px dashed #a0aec0; /* Tailwind gray-400 */
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .drop-zone.highlight {
+            background-color: #e2e8f0; /* Tailwind gray-200 */
+            border-color: #4299e1; /* Tailwind blue-500 */
+        }
+        .drop-zone p {
+            margin: 0;
+            color: #4a5568; /* Tailwind gray-700 */
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+        .drop-zone svg {
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -158,6 +192,9 @@
                 margin-bottom: 20px;
             }
             .main-content {
+                padding: 20px;
+            }
+            .drop-zone {
                 padding: 20px;
             }
         }
@@ -183,24 +220,35 @@
         <div class="main-content flex-1">
             <h1 class="text-4xl font-bold text-gray-800 mb-4">Chuyển đổi PDF sang Word</h1>
             <p class="text-lg text-gray-600 mb-8">Chuyển đổi tài liệu PDF của bạn sang định dạng Word (.docx) một cách dễ dàng và nhanh chóng.</p>
+            <p class="text-sm text-gray-500 mb-6 italic">
+                Lưu ý: Chúng tôi sử dụng công nghệ miễn phí để chuyển đổi. Định dạng cuối cùng có thể tương đối giống bản gốc, nhưng không đảm bảo giữ nguyên 100% cho các tài liệu phức tạp.
+            </p>
 
-            <form id="uploadForm" action="/convert" method="post" enctype="multipart/form-data" class="flex flex-col items-center space-y-6">
-                <input type="file" name="pdf_file" id="pdf_file_input" accept=".pdf" class="file-input" onchange="updateFileName()">
-                <label for="pdf_file_input" class="file-input-label">
-                    Chọn tệp PDF
-                </label>
-                <span id="file_name" class="text-gray-700 text-md">Chưa có tệp nào được chọn</span>
+            <form id="uploadForm" action="/convert" method="post" enctype="multipart/form-data" class="flex flex-col items-center space-y-6 w-full">
+                <div id="drop_zone" class="drop-zone flex flex-col items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 16V10"/><path d="M9 13l3-3 3 3"/></svg>
+                    <p>Kéo và thả tệp PDF vào đây</p>
+                    <p class="text-sm text-gray-500 mt-2">hoặc</p>
+                    <input type="file" name="pdf_file" id="pdf_file_input" accept=".pdf" class="file-input" onchange="handleFileInputChange()">
+                    <label for="pdf_file_input" class="file-input-label mt-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-up"><path d="M11 10V6"/><path d="M14 9l-3-3-3 3"/><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 4 2H2v.06a2 2 0 0 0 0 3.88v9.96A2 2 0 0 0 2 20"/><path d="M2 12h20"/></svg>
+                        Chọn tệp PDF
+                    </label>
+                </div>
+                <span id="file_name" class="text-gray-700 text-md font-semibold">Chưa có tệp nào được chọn</span>
 
                 <button type="submit" class="upload-button">
-                    Chuyển đổi
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text inline-block mr-2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                    Chuyển đổi ngay
                 </button>
             </form>
 
             <div id="loadingSpinner" class="loading-spinner"></div>
             <div id="message" class="message hidden"></div>
-            <div id="download_area" class="mt-8 hidden">
-                <p class="text-lg text-gray-700 mb-4">Tệp của bạn đã sẵn sàng để tải về!</p>
+            <div id="download_area" class="mt-8 hidden flex flex-col items-center">
+                <p class="text-lg text-gray-700 mb-4">Tệp của bạn đã sẵn sàng để tải về! 🎉</p>
                 <button id="download_button" class="download-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download inline-block mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                     Tải về tệp Word
                 </button>
             </div>
@@ -224,33 +272,71 @@
     <script>
         let downloadClickedOnce = false;
         let downloadFileName = '';
+        const pdfFileInput = document.getElementById('pdf_file_input');
+        const fileNameSpan = document.getElementById('file_name');
+        const uploadForm = document.getElementById('uploadForm');
+        const messageDiv = document.getElementById('message');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const downloadArea = document.getElementById('download_area');
+        const downloadButton = document.getElementById('download_button');
+        const dropZone = document.getElementById('drop_zone');
 
-        function updateFileName() {
-            const input = document.getElementById('pdf_file_input');
-            const fileNameSpan = document.getElementById('file_name');
-            if (input.files.length > 0) {
-                fileNameSpan.textContent = input.files[0].name;
+        function handleFileInputChange() {
+            if (pdfFileInput.files.length > 0) {
+                fileNameSpan.textContent = pdfFileInput.files[0].name;
             } else {
                 fileNameSpan.textContent = 'Chưa có tệp nào được chọn';
             }
         }
 
-        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+        // Drag and Drop functionality
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('highlight');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('highlight');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('highlight');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                // Check if the dropped file is a PDF
+                if (files[0].type === 'application/pdf') {
+                    pdfFileInput.files = files; // Assign dropped files to the input
+                    handleFileInputChange();
+                } else {
+                    showMessage('Vui lòng chỉ kéo thả tệp PDF.', 'error');
+                }
+            }
+        });
+
+        uploadForm.addEventListener('submit', async function(event) {
             event.preventDefault(); // Ngăn chặn form gửi đi mặc định
 
-            const form = event.target;
-            const formData = new FormData(form);
-            const messageDiv = document.getElementById('message');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            const downloadArea = document.getElementById('download_area');
+            if (pdfFileInput.files.length === 0) {
+                showMessage('Vui lòng chọn một tệp PDF để chuyển đổi.', 'error');
+                return;
+            }
 
+            const file = pdfFileInput.files[0];
+            if (file.type !== 'application/pdf') {
+                showMessage('Tệp đã chọn không phải là PDF. Vui lòng chọn tệp PDF.', 'error');
+                return;
+            }
+
+            const formData = new FormData(uploadForm);
+            
             messageDiv.classList.add('hidden');
             downloadArea.classList.add('hidden');
             loadingSpinner.style.display = 'block'; // Hiển thị spinner
 
             try {
-                const response = await fetch(form.action, {
-                    method: form.method,
+                const response = await fetch(uploadForm.action, {
+                    method: uploadForm.method,
                     body: formData
                 });
 
@@ -259,50 +345,53 @@
                 loadingSpinner.style.display = 'none'; // Ẩn spinner
 
                 if (response.ok) {
-                    messageDiv.textContent = result.message;
-                    messageDiv.classList.remove('hidden', 'error');
-                    messageDiv.classList.add('success');
+                    showMessage(result.message, 'success');
                     downloadFileName = result.download_filename; // Lưu tên file để tải về
                     downloadArea.classList.remove('hidden');
                     downloadClickedOnce = false; // Reset trạng thái click tải về
+                    downloadButton.textContent = 'Tải về tệp Word'; // Reset nút
+                    downloadButton.style.backgroundColor = '#28a745';
+                    downloadButton.style.color = 'white';
                 } else {
-                    messageDiv.textContent = result.error || 'Đã xảy ra lỗi trong quá trình chuyển đổi.';
-                    messageDiv.classList.remove('hidden', 'success');
-                    messageDiv.classList.add('error');
+                    showMessage(result.error || 'Đã xảy ra lỗi trong quá trình chuyển đổi.', 'error');
                 }
             } catch (error) {
                 loadingSpinner.style.display = 'none'; // Ẩn spinner
-                messageDiv.textContent = 'Lỗi kết nối hoặc máy chủ: ' + error.message;
-                messageDiv.classList.remove('hidden', 'success');
-                messageDiv.classList.add('error');
+                showMessage('Lỗi kết nối hoặc máy chủ: ' + error.message, 'error');
             }
         });
 
-        document.getElementById('download_button').addEventListener('click', function() {
+        downloadButton.addEventListener('click', function() {
             if (!downloadClickedOnce) {
                 // Mở tab quảng cáo
                 window.open('https://your-ad-link.com', '_blank'); // Thay thế bằng URL quảng cáo của bạn
                 downloadClickedOnce = true;
                 this.textContent = 'Click lần nữa để tải về!'; // Thay đổi text nút
-                this.style.backgroundColor = '#ffc107'; // Thay đổi màu nút
+                this.style.backgroundColor = '#ffc107'; // Thay đổi màu nút (vàng)
                 this.style.color = '#333';
             } else {
                 // Tiến hành tải file thực sự
                 if (downloadFileName) {
                     window.location.href = `/download/${downloadFileName}`;
                 } else {
-                    const messageDiv = document.getElementById('message');
-                    messageDiv.textContent = 'Không tìm thấy tệp để tải về. Vui lòng thử lại.';
-                    messageDiv.classList.remove('hidden', 'success');
-                    messageDiv.classList.add('error');
+                    showMessage('Không tìm thấy tệp để tải về. Vui lòng thử lại.', 'error');
                 }
-                // Reset nút sau khi tải về (hoặc có thể để nguyên nếu muốn)
+                // Reset nút sau khi tải về
                 this.textContent = 'Tải về tệp Word';
                 this.style.backgroundColor = '#28a745';
                 this.style.color = 'white';
                 downloadClickedOnce = false;
             }
         });
+
+        function showMessage(msg, type) {
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`; // Reset classes and apply new ones
+            messageDiv.classList.remove('hidden');
+        }
+
+        // Initialize Lucide icons
+        lucide.createIcons();
     </script>
 </body>
 </html>
