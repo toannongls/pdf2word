@@ -16,8 +16,12 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # rate limiter
-limiter = Limiter(app, key_func=get_remote_address, default_limits=["5 per minute"])
-
+# Đúng cú pháp cho Flask-Limiter phiên bản mới
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["5 per minute"]
+)
+limiter.init_app(app)
 UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "output"
 DB_PATH = "metrics.db"
