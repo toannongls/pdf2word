@@ -4,3 +4,4 @@ pdf2image
 python-docx
 Werkzeug
 gunicorn
+Flask-Limiter

@@ -1,20 +1,20 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Đang xử lý tải về...</title>
-    <script>
-        window.onload = function () {
-            const adUrl = "https://example.com"; // Thay bằng quảng cáo thật
-            window.open(adUrl, '_blank');
-            setTimeout(() => {
-                window.location.href = "/download-ad";
-            }, 3000);
-        }
-    </script>
+  <meta charset="UTF-8">
+  <title>Quảng cáo</title>
+  <script>
+    window.onload = function() {
+      // mở trang quảng cáo thêm (popunder)
+      window.open("https://www.adsterra.com/", "_blank");
+      // sau 2s chuyển tới tải thực
+      setTimeout(() => {
+        window.location.href = "/download-ad";
+      }, 2000);
+    };
+  </script>
 </head>
 <body>
-    <h2>Vui lòng chờ trong giây lát...</h2>
+  <h2>Đang chuẩn bị tải về... Vui lòng chờ.</h2>
 </body>
 </html>
