@@ -1,7 +1,7 @@
+
 Flask
+Flask-Limiter
 pytesseract
 pdf2image
 python-docx
-Werkzeug
 gunicorn
-Flask-Limiter

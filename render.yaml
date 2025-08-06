@@ -1,7 +1,10 @@
+
 services:
   - type: web
-    name: pdf2word-ads-upgraded
-    env: docker
+    name: pdf2word-vietnamese
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
     plan: free
-    dockerfilePath: Dockerfile
+    branch: main
     autoDeploy: true
