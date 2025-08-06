@@ -1,68 +1,308 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Chuyển PDF sang Word - Quảng cáo</title>
-  <style>
-    body {
-      background: #f5f5f5;
-      font-family: sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    header, footer {
-      background: #222;
-      color: #fff;
-      padding: 1em;
-    }
-    .content {
-      max-width: 600px;
-      margin: 2em auto;
-      background: #fff;
-      padding: 2em;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .banner {
-      margin: 1em auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyển đổi PDF sang Word - Miễn phí và Nhanh chóng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .ad-banner {
+            background-color: #e0e0e0;
+            color: #555;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 0.8em;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .ad-banner-side {
+            background-color: #e0e0e0;
+            color: #555;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.8em;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 160px; /* Adjust as needed */
+            height: 300px; /* Example height for side ads */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            display: flex;
+            flex-grow: 1;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .main-content {
+            flex-grow: 1;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .footer-ad-banner {
+            background-color: #e0e0e0;
+            color: #555;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 0.8em;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .file-input-label {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .file-input-label:hover {
+            background-color: #45a049;
+        }
+        .file-input {
+            display: none;
+        }
+        .upload-button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+        }
+        .upload-button:hover {
+            background-color: #0056b3;
+        }
+        .download-button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+            margin-top: 20px;
+        }
+        .download-button:hover {
+            background-color: #218838;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-top: 20px;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            .ad-banner-side {
+                min-width: unset;
+                height: auto;
+                margin-bottom: 20px;
+            }
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>Chuyển PDF sang Word</h1>
-    <div class="banner">[Quảng cáo đầu trang]</div>
-  </header>
+    <!-- Top Ad Banner -->
+    <div class="ad-banner w-full py-4 bg-gray-200 text-gray-700 text-sm rounded-none">
+        <!-- Thay thế bằng mã quảng cáo thực tế của bạn -->
+        <p>Quảng cáo của bạn ở đây (Top Banner)</p>
+        <img src="https://placehold.co/728x90/e0e0e0/555?text=Top+Ad" alt="Top Ad Placeholder" class="mx-auto mt-2 rounded-md">
+    </div>
 
-  <div class="banner">[Quảng cáo bên trái]</div>
+    <div class="container">
+        <!-- Left Ad Banner -->
+        <div class="ad-banner-side w-full md:w-1/5 bg-gray-200 text-gray-700 text-sm">
+            <!-- Thay thế bằng mã quảng cáo thực tế của bạn -->
+            <p>Quảng cáo của bạn ở đây (Left Banner)</p>
+            <img src="https://placehold.co/160x600/e0e0e0/555?text=Left+Ad" alt="Left Ad Placeholder" class="mx-auto mt-2 rounded-md">
+        </div>
 
-  <div class="content">
-    <form method="POST" enctype="multipart/form-data">
-      <input type="file" name="pdf_file" required><br><br>
-      <button type="submit">Chuyển đổi</button>
-    </form>
+        <!-- Main Content -->
+        <div class="main-content flex-1">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">Chuyển đổi PDF sang Word</h1>
+            <p class="text-lg text-gray-600 mb-8">Chuyển đổi tài liệu PDF của bạn sang định dạng Word (.docx) một cách dễ dàng và nhanh chóng.</p>
 
-    {% if show_download %}
-      <br><a href="{{ url_for('download_ad') }}" id="downloadBtn">Tải về</a>
-    {% endif %}
+            <form id="uploadForm" action="/convert" method="post" enctype="multipart/form-data" class="flex flex-col items-center space-y-6">
+                <input type="file" name="pdf_file" id="pdf_file_input" accept=".pdf" class="file-input" onchange="updateFileName()">
+                <label for="pdf_file_input" class="file-input-label">
+                    Chọn tệp PDF
+                </label>
+                <span id="file_name" class="text-gray-700 text-md">Chưa có tệp nào được chọn</span>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-          {% for msg in messages %}
-            <li>{{ msg }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-  </div>
+                <button type="submit" class="upload-button">
+                    Chuyển đổi
+                </button>
+            </form>
 
-  <div class="banner">[Quảng cáo bên phải]</div>
+            <div id="loadingSpinner" class="loading-spinner"></div>
+            <div id="message" class="message hidden"></div>
+            <div id="download_area" class="mt-8 hidden">
+                <p class="text-lg text-gray-700 mb-4">Tệp của bạn đã sẵn sàng để tải về!</p>
+                <button id="download_button" class="download-button">
+                    Tải về tệp Word
+                </button>
+            </div>
+        </div>
 
-  <footer>
-    <div class="banner">[Quảng cáo cuối trang]</div>
-    <p>&copy; 2025</p>
-  </footer>
+        <!-- Right Ad Banner -->
+        <div class="ad-banner-side w-full md:w-1/5 bg-gray-200 text-gray-700 text-sm">
+            <!-- Thay thế bằng mã quảng cáo thực tế của bạn -->
+            <p>Quảng cáo của bạn ở đây (Right Banner)</p>
+            <img src="https://placehold.co/160x600/e0e0e0/555?text=Right+Ad" alt="Right Ad Placeholder" class="mx-auto mt-2 rounded-md">
+        </div>
+    </div>
+
+    <!-- Bottom Ad Banner -->
+    <div class="footer-ad-banner w-full py-4 bg-gray-200 text-gray-700 text-sm rounded-none">
+        <!-- Thay thế bằng mã quảng cáo thực tế của bạn -->
+        <p>Quảng cáo của bạn ở đây (Bottom Banner)</p>
+        <img src="https://placehold.co/728x90/e0e0e0/555?text=Bottom+Ad" alt="Bottom Ad Placeholder" class="mx-auto mt-2 rounded-md">
+    </div>
+
+    <script>
+        let downloadClickedOnce = false;
+        let downloadFileName = '';
+
+        function updateFileName() {
+            const input = document.getElementById('pdf_file_input');
+            const fileNameSpan = document.getElementById('file_name');
+            if (input.files.length > 0) {
+                fileNameSpan.textContent = input.files[0].name;
+            } else {
+                fileNameSpan.textContent = 'Chưa có tệp nào được chọn';
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Ngăn chặn form gửi đi mặc định
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const messageDiv = document.getElementById('message');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const downloadArea = document.getElementById('download_area');
+
+            messageDiv.classList.add('hidden');
+            downloadArea.classList.add('hidden');
+            loadingSpinner.style.display = 'block'; // Hiển thị spinner
+
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                loadingSpinner.style.display = 'none'; // Ẩn spinner
+
+                if (response.ok) {
+                    messageDiv.textContent = result.message;
+                    messageDiv.classList.remove('hidden', 'error');
+                    messageDiv.classList.add('success');
+                    downloadFileName = result.download_filename; // Lưu tên file để tải về
+                    downloadArea.classList.remove('hidden');
+                    downloadClickedOnce = false; // Reset trạng thái click tải về
+                } else {
+                    messageDiv.textContent = result.error || 'Đã xảy ra lỗi trong quá trình chuyển đổi.';
+                    messageDiv.classList.remove('hidden', 'success');
+                    messageDiv.classList.add('error');
+                }
+            } catch (error) {
+                loadingSpinner.style.display = 'none'; // Ẩn spinner
+                messageDiv.textContent = 'Lỗi kết nối hoặc máy chủ: ' + error.message;
+                messageDiv.classList.remove('hidden', 'success');
+                messageDiv.classList.add('error');
+            }
+        });
+
+        document.getElementById('download_button').addEventListener('click', function() {
+            if (!downloadClickedOnce) {
+                // Mở tab quảng cáo
+                window.open('https://your-ad-link.com', '_blank'); // Thay thế bằng URL quảng cáo của bạn
+                downloadClickedOnce = true;
+                this.textContent = 'Click lần nữa để tải về!'; // Thay đổi text nút
+                this.style.backgroundColor = '#ffc107'; // Thay đổi màu nút
+                this.style.color = '#333';
+            } else {
+                // Tiến hành tải file thực sự
+                if (downloadFileName) {
+                    window.location.href = `/download/${downloadFileName}`;
+                } else {
+                    const messageDiv = document.getElementById('message');
+                    messageDiv.textContent = 'Không tìm thấy tệp để tải về. Vui lòng thử lại.';
+                    messageDiv.classList.remove('hidden', 'success');
+                    messageDiv.classList.add('error');
+                }
+                // Reset nút sau khi tải về (hoặc có thể để nguyên nếu muốn)
+                this.textContent = 'Tải về tệp Word';
+                this.style.backgroundColor = '#28a745';
+                this.style.color = 'white';
+                downloadClickedOnce = false;
+            }
+        });
+    </script>
 </body>
 </html>
-# Content omitted for brevity

@@ -1,71 +1,141 @@
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for, flash, session
 import os
+import logging
+from flask import Flask, request, render_template, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
-from pdf2docx import Converter
+from pdfminer.high_level import extract_text
+from docx import Document
+from docx.shared import Inches
+import re
+
+# Cấu hình logging cơ bản
+# Điều này giúp bạn theo dõi các hoạt động và lỗi trên môi trường online
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
 
-UPLOAD_FOLDER = "uploads"
-OUTPUT_FOLDER = "output"
+# Cấu hình thư mục lưu trữ file tạm thời
+# Đảm bảo các thư mục này tồn tại và có quyền ghi
+UPLOAD_FOLDER = 'uploads'
+CONVERTED_FOLDER = 'converted'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['CONVERTED_FOLDER'] = CONVERTED_FOLDER
 
+# Tạo thư mục nếu chưa tồn tại
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.config["OUTPUT_FOLDER"] = OUTPUT_FOLDER
-app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10MB limit
-
-# Chuyển đổi PDF sang DOCX (không dùng OCR)
-def convert_pdf_to_docx(pdf_path, docx_path):
+# Hàm đơn giản để chuyển đổi PDF sang Word
+# Lưu ý: Hàm này chỉ trích xuất văn bản và có thể không giữ nguyên định dạng phức tạp
+def pdf_to_word_simple(pdf_path, docx_path):
+    """
+    Trích xuất văn bản từ file PDF và lưu vào định dạng Word (.docx).
+    Đây là một phương pháp đơn giản, có thể không giữ nguyên định dạng phức tạp.
+    """
     try:
-        cv = Converter(pdf_path)
-        cv.convert(docx_path, start=0, end=None)
-        cv.close()
+        logging.info(f"Bắt đầu trích xuất văn bản từ PDF: {pdf_path}")
+        text = extract_text(pdf_path)
+        logging.info("Trích xuất văn bản thành công.")
+
+        document = Document()
+        
+        # Chia văn bản thành các đoạn dựa trên dòng mới kép để giữ cấu trúc tốt hơn
+        paragraphs = text.split('\n\n')
+        for para_text in paragraphs:
+            cleaned_text = para_text.strip()
+            if cleaned_text:
+                document.add_paragraph(cleaned_text)
+        
+        logging.info(f"Lưu tài liệu Word vào: {docx_path}")
+        document.save(docx_path)
+        logging.info("Lưu tài liệu Word thành công.")
         return True
     except Exception as e:
-        print(f"[ERROR] PDF conversion failed: {e}")
+        logging.error(f"Lỗi khi chuyển đổi PDF sang Word cho {pdf_path}: {e}", exc_info=True)
         return False
 
-@app.route("/", methods=["GET", "POST"])
+@app.route('/')
 def index():
-    if request.method == "POST":
-        file = request.files.get("pdf_file")
-        if file and file.filename.endswith(".pdf"):
-            filename = secure_filename(file.filename)
-            input_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(input_path)
+    """
+    Hiển thị trang chủ với form tải lên.
+    """
+    logging.info("Truy cập trang chủ.")
+    return render_template('index.html')
 
-            output_filename = filename.rsplit(".", 1)[0] + ".docx"
-            output_path = os.path.join(app.config["OUTPUT_FOLDER"], output_filename)
+@app.route('/convert', methods=['POST'])
+def convert_pdf():
+    """
+    Xử lý yêu cầu chuyển đổi PDF.
+    - Nhận file PDF từ người dùng.
+    - Lưu file tạm thời.
+    - Chuyển đổi sang Word.
+    - Trả về đường dẫn tải về.
+    """
+    logging.info("Nhận yêu cầu chuyển đổi PDF.")
+    if 'pdf_file' not in request.files:
+        logging.warning("Không có tệp nào được chọn trong yêu cầu.")
+        return jsonify({'error': 'Không có tệp nào được chọn'}), 400
 
-            success = convert_pdf_to_docx(input_path, output_path)
-            if not success:
-                flash("Chuyển đổi PDF thất bại. Kiểm tra định dạng file hoặc cấu hình server.")
-                return redirect(url_for("index"))
+    file = request.files['pdf_file']
+    if file.filename == '':
+        logging.warning("Tên tệp trống.")
+        return jsonify({'error': 'Không có tệp nào được chọn'}), 400
 
-            session["converted_file"] = output_filename
-            session["download_clicked"] = False
+    if file:
+        original_filename = secure_filename(file.filename)
+        base_filename = os.path.splitext(original_filename)[0]
+        
+        # Đảm bảo tên file an toàn cho URL và hệ thống file
+        safe_base_filename = re.sub(r'[^\w\s-]', '', base_filename).strip()
+        safe_base_filename = re.sub(r'[-\s]+', '-', safe_base_filename)
+        
+        pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], original_filename)
+        docx_filename = f"{safe_base_filename}.docx"
+        docx_path = os.path.join(app.config['CONVERTED_FOLDER'], docx_filename)
 
-            return render_template("index.html", show_download=True, filename=output_filename)
-        else:
-            flash("Vui lòng tải lên file PDF hợp lệ.")
-            return redirect(url_for("index"))
+        try:
+            logging.info(f"Lưu file PDF tải lên: {pdf_path}")
+            file.save(pdf_path) # Lưu file PDF tải lên
+            
+            if pdf_to_word_simple(pdf_path, docx_path):
+                logging.info(f"Chuyển đổi thành công, file Word: {docx_filename}")
+                return jsonify({
+                    'message': 'Chuyển đổi thành công!',
+                    'download_filename': docx_filename
+                }), 200
+            else:
+                logging.error(f"Chuyển đổi thất bại cho file: {original_filename}")
+                return jsonify({'error': 'Không thể chuyển đổi tệp PDF. Vui lòng thử lại.'}), 500
+        except Exception as e:
+            logging.error(f"Lỗi xử lý file {original_filename}: {e}", exc_info=True)
+            return jsonify({'error': f'Lỗi máy chủ nội bộ: {e}'}), 500
+        finally:
+            # Đảm bảo xóa file PDF đã tải lên sau khi xử lý để tránh tích tụ file
+            if os.path.exists(pdf_path):
+                try:
+                    os.remove(pdf_path)
+                    logging.info(f"Đã xóa file PDF tạm thời: {pdf_path}")
+                except Exception as e:
+                    logging.error(f"Lỗi khi xóa file PDF tạm thời {pdf_path}: {e}", exc_info=True)
 
-    return render_template("index.html")
+@app.route('/download/<filename>')
+def download_file(filename):
+    """
+    Cho phép người dùng tải về file đã chuyển đổi.
+    """
+    logging.info(f"Yêu cầu tải file: {filename}")
+    try:
+        # Sử dụng send_from_directory để phục vụ file một cách an toàn
+        return send_from_directory(app.config['CONVERTED_FOLDER'], filename, as_attachment=True)
+    except FileNotFoundError:
+        logging.warning(f"Không tìm thấy tệp để tải xuống: {filename}")
+        return jsonify({'error': 'Không tìm thấy tệp hoặc tệp đã bị xóa.'}), 404
+    except Exception as e:
+        logging.error(f"Lỗi khi tải file {filename}: {e}", exc_info=True)
+        return jsonify({'error': 'Lỗi máy chủ khi tải xuống tệp.'}), 500
 
-@app.route("/download-ad")
-def download_ad():
-    if "converted_file" not in session:
-        return redirect(url_for("index"))
+if __name__ == '__main__':
+    # Khi triển khai trên Render, Gunicorn sẽ quản lý việc chạy ứng dụng.
+    # Đoạn này chỉ chạy khi bạn chạy app.py trực tiếp để phát triển.
+    logging.info("Ứng dụng Flask đang chạy ở chế độ phát triển.")
+    app.run(debug=True, host='0.0.0.0', port=os.environ.get('PORT', 5000))
 
-    if not session.get("download_clicked"):
-        # Lần đầu click: mở quảng cáo
-        session["download_clicked"] = True
-        return render_template("ad_redirect.html", filename=session["converted_file"])
-    else:
-        filename = session.pop("converted_file", None)
-        session.pop("download_clicked", None)
-        return send_from_directory(app.config["OUTPUT_FOLDER"], filename, as_attachment=True)
-
-# Gunicorn sẽ tự động tìm app này để chạy
