@@ -2,6 +2,7 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, url_for, flash, session
 import os
 import pytesseract
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 from pdf2image import convert_from_path
 from docx import Document
 from werkzeug.utils import secure_filename
